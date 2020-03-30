@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+		html, body{
+			margin: 0;
+		}
+		input[type=file]{
+			margin: .75em;
+		}
+		.container{
+			width: 100vw;
+		}
+		#images{
+			float: left;
+			text-align: center;
+			width: 66vw;
+		}
+		#full-image{
+			position: fixed;
+			top: 0;
+			right: 3vw;
+			width: 30vw;
+			height: 100vh;
+		}
+		#images img, #image-preview{
+			display: block;
+			margin: auto;
+			max-width: 100%;
+		}
+		#image-preview{
+			position: absolute;
+			top: 50%;
+			transform: translateY(-50%);
+		}
+		#image-preview[src]{
+			border: 1px solid rgba(50,50,50,.8);			
+		}
+		#image img:not([src]){
+			display: none;
+		}
+	</style>
+</head>
+<body>
+	<input id="dir" type="file" webkitdirectory accept="image/*">
+	<div class="container">
+		<div id="images"></div>
+		<div id="full-image">
+			<img id="image-preview" />
+		</div>
+	</div>
+	<script type="text/javascript">
+		(function(){
+			function elementInView(elem){
+				let screenTop = window.scrollY;
+				let screenBottom = screenTop + window.innerHeight;
+				let elemTop = elem.offsetTop;
+				let elemBottom = elemTop + elem.offsetHeight;
+				return ((elemBottom >= screenTop && elemBottom <= screenBottom) ||
+					(elemTop >= screenTop && elemTop <= screenBottom))
+			}
+			function overHalfOfElementInView(elem){
+				let screenTop = window.scrollY;
+				let screenBottom = screenTop + window.innerHeight;
+				let elemTop = elem.offsetTop;
+				let elemBottom = elemTop + elem.offsetHeight;
+
+				let top = screenTop >= elemTop ? screenTop : elemTop;
+				let bottom = screenBottom <= elemBottom ? screenBottom : elemBottom;
+				return (bottom - top >= (elemBottom - elemTop)/2)
+			}
+			document.getElementById('dir').onchange = function(){
+				let images = document.getElementById('images');
+				while (images.children.length > 0){
+					images.children[0].remove();
+				}
+				for (let i = 0; i < this.files.length; i++){
+					const fr = new FileReader();
+					let img = document.createElement('img');
+					
+					fr.onload = function(){
+						img.src = this.result;
+						if (i === 0){
+							document.getElementById('image-preview').src = this.result;
+						}
+					}
+					fr.readAsDataURL(this.files[i])
+
+					images.appendChild(img);
+				}
+			}
+
+			window.onscroll = function(){
+				let images = document.getElementById('images');
+				let src = null;
+				for (let i = 0; i < images.children.length; i++){
+					let img = images.children[i];
+					let screenTop = window.scrollY;
+					let screenBottom = screenTop + window.innerHeight;
+					let imgTop = img.offsetTop;
+					let imgBottom = imgTop + img.offsetHeight;
+					if (elementInView(img) && overHalfOfElementInView(img)){
+						src = img.src;
+						break;
+					}
+				}
+				if (src){
+					document.getElementById('image-preview').src = src;
+				}
+			}
+		})()
+	</script>
+</body>
+</html>
