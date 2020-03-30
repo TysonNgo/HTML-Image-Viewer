@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title></title>
+	<title>HTML Image Viewer</title>
 	<style type="text/css">
 		html, body{
 			margin: 0;
@@ -23,6 +23,12 @@
 			right: 3vw;
 			width: 30vw;
 			height: 100vh;
+		}
+		#full-image #image-number{
+			position: fixed;
+			top: .75em;
+			right: 3vw;
+			font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
 		}
 		#images img, #image-preview{
 			display: block;
@@ -48,65 +54,104 @@
 		<div id="images"></div>
 		<div id="full-image">
 			<img id="image-preview" />
+			<div id="image-number">
+				<span id="image-current"></span>
+				/
+				<span id="image-max"></span>
+			</div>
 		</div>
 	</div>
 	<script type="text/javascript">
 		(function(){
+			let files = [];
+			let initialImagesLoaded = 8;
+
 			function elementInView(elem){
-				let screenTop = window.scrollY;
-				let screenBottom = screenTop + window.innerHeight;
+				let viewTop = window.scrollY;
+				let viewBottom = viewTop + window.innerHeight;
 				let elemTop = elem.offsetTop;
 				let elemBottom = elemTop + elem.offsetHeight;
-				return ((elemBottom >= screenTop && elemBottom <= screenBottom) ||
-					(elemTop >= screenTop && elemTop <= screenBottom))
+				return ((elemBottom >= viewTop && elemBottom <= viewBottom) ||
+					(elemTop >= viewTop && elemTop <= viewBottom))
 			}
 			function overHalfOfElementInView(elem){
-				let screenTop = window.scrollY;
-				let screenBottom = screenTop + window.innerHeight;
+				let viewTop = window.scrollY;
+				let viewBottom = viewTop + window.innerHeight;
 				let elemTop = elem.offsetTop;
 				let elemBottom = elemTop + elem.offsetHeight;
 
-				let top = screenTop >= elemTop ? screenTop : elemTop;
-				let bottom = screenBottom <= elemBottom ? screenBottom : elemBottom;
+				let top = viewTop >= elemTop ? viewTop : elemTop;
+				let bottom = viewBottom <= elemBottom ? viewBottom : elemBottom;
 				return (bottom - top >= (elemBottom - elemTop)/2)
+			}
+			function viewIsNearBottomOfPage(){
+				let body = document.body;
+				let html = document.documentElement;
+				let pageHeight = Math.max( body.scrollHeight, body.offsetHeight, 
+					html.clientHeight, html.scrollHeight, html.offsetHeight );
+
+				let viewTop = window.scrollY;
+				let viewHeight = window.innerHeight;
+				return pageHeight - viewTop <= viewHeight*3;
+			}
+			function loadImage(){
+				return new Promise((resolve, reject) => {
+					if (files.length > 0){
+						let file = files.shift();
+						let images = document.getElementById('images');
+						const fr = new FileReader();
+						let img = document.createElement('img');
+						
+						fr.onload = function(){
+							img.src = this.result;
+							resolve(this.result);
+						}
+						fr.readAsDataURL(file);
+
+						images.appendChild(img);
+					}
+				})
 			}
 			document.getElementById('dir').onchange = function(){
 				let images = document.getElementById('images');
 				while (images.children.length > 0){
 					images.children[0].remove();
 				}
+				while (files.length > 0){
+					files.pop();
+				}
 				for (let i = 0; i < this.files.length; i++){
-					const fr = new FileReader();
-					let img = document.createElement('img');
-					
-					fr.onload = function(){
-						img.src = this.result;
+					files.push(this.files[i])
+				}
+				document.getElementById('image-current').innerText = 1;
+				document.getElementById('image-max').innerText = files.length;
+				for (let i = 0; i < Math.min(initialImagesLoaded, files.length); i++){
+					loadImage().then(src => {
 						if (i === 0){
-							document.getElementById('image-preview').src = this.result;
+							document.getElementById('image-preview').src = src;
 						}
-					}
-					fr.readAsDataURL(this.files[i])
-
-					images.appendChild(img);
+					})
 				}
 			}
 
 			window.onscroll = function(){
 				let images = document.getElementById('images');
 				let src = null;
+				let imageNumber = null;
 				for (let i = 0; i < images.children.length; i++){
 					let img = images.children[i];
-					let screenTop = window.scrollY;
-					let screenBottom = screenTop + window.innerHeight;
-					let imgTop = img.offsetTop;
-					let imgBottom = imgTop + img.offsetHeight;
 					if (elementInView(img) && overHalfOfElementInView(img)){
 						src = img.src;
+						imageNumber = i;
 						break;
 					}
 				}
 				if (src){
 					document.getElementById('image-preview').src = src;
+					document.getElementById('image-current').innerText = imageNumber + 1;
+				}
+				if (viewIsNearBottomOfPage()){
+					loadImage();
 				}
 			}
 		})()
