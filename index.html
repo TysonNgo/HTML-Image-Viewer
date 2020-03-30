@@ -128,7 +128,9 @@
 				for (let i = 0; i < Math.min(initialImagesLoaded, files.length); i++){
 					loadImage().then(src => {
 						if (i === 0){
-							document.getElementById('image-preview').src = src;
+							let preview = document.getElementById('image-preview');
+							preview.src = src;
+							preview.dataset.index = i;
 						}
 					})
 				}
@@ -136,6 +138,7 @@
 
 			window.onscroll = function(){
 				let images = document.getElementById('images');
+				let preview = document.getElementById('image-preview');
 				let src = null;
 				let imageNumber = null;
 				for (let i = 0; i < images.children.length; i++){
@@ -146,8 +149,9 @@
 						break;
 					}
 				}
-				if (src){
-					document.getElementById('image-preview').src = src;
+				if (src && imageNumber != preview.dataset.index){
+					preview.src = src;
+					preview.dataset.index = imageNumber;
 					document.getElementById('image-current').innerText = imageNumber + 1;
 				}
 				if (viewIsNearBottomOfPage()){
