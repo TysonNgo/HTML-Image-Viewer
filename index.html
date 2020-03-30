@@ -49,7 +49,7 @@
 	</style>
 </head>
 <body>
-	<input id="dir" type="file" webkitdirectory accept="image/*">
+	<input id="dir" type="file" webkitdirectory>
 	<div class="container">
 		<div id="images"></div>
 		<div id="full-image">
@@ -121,7 +121,9 @@
 					files.pop();
 				}
 				for (let i = 0; i < this.files.length; i++){
-					files.push(this.files[i])
+					if (/^image/.test(this.files[i].type)){
+						files.push(this.files[i])
+					}
 				}
 				document.getElementById('image-current').innerText = 1;
 				document.getElementById('image-max').innerText = files.length;
