@@ -46,9 +46,30 @@
 		#image img:not([src]){
 			display: none;
 		}
+		#dir{
+			position: fixed;
+			top:0;
+			opacity: 0.1;
+			width:100vw;
+			background: rgba(0,0,0,.2);
+			padding:10px;
+			margin:0;
+		}
+		#dir:hover{
+			opacity: 1;
+		}
+		#dir-label{
+			position: fixed;
+			top:0;
+			margin: .75em 0;
+			text-align: center;
+			z-index: -1000;
+			width: 100vw;
+		}
 	</style>
 </head>
 <body>
+	<label id="dir-label">Click Here to Select a Directory</label>
 	<input id="dir" type="file" webkitdirectory>
 	<div class="container">
 		<div id="images"></div>
